@@ -48,7 +48,7 @@ const EpisodeCard = ({ episode, serialName }) => {
   };
 
   const blogUrl = blogBaseUrls[serialName]
-    ? `${blogBaseUrls[serialName]}/${episode.episodeNo}`
+    ? `${blogBaseUrls[serialName]}/#${episode.episodeNo}`
     : "#"; // fallback
 
   return (
