@@ -41,9 +41,9 @@ const EpisodeCard = ({ episode, serialName }) => {
   // Define blog base URL per serial
   const blogBaseUrls = {
     "Anupama": import.meta.env.VITE_ANUPAMA_BLOG,
-    "Bhagya Lakshmi": import.meta.env.VITE_BHAGYA_LAKSHMI_BLOG,
-    "Tum Se Tum Tak": import.meta.env.VITE_TUM_SE_TUM_TAK_BLOG,
-    "Saas Bhi Kabhi Bahu Thi": import.meta.env.VITE_SAAS_BHI_KABHI_BAHU_THI_BLOG
+    "Yeh Rishta Kya Kehlata Hai": import.meta.env.VITE_BHAGYA_LAKSHMI_BLOG,
+    // "Tum Se Tum Tak": import.meta.env.VITE_TUM_SE_TUM_TAK_BLOG,
+    // "Saas Bhi Kabhi Bahu Thi": import.meta.env.VITE_SAAS_BHI_KABHI_BAHU_THI_BLOG
 
   };
 
