@@ -56,23 +56,34 @@ const NavigationTabs = ({ activeTab, setActiveTab }) => {
 // ----------------- Serial Form Modal -----------------
 const SerialFormModal = ({ isOpen, onClose, serial, onSave, mode = 'add' }) => {
   const [formData, setFormData] = useState({
-    name: serial?.name || '',
-    description: serial?.description || '',
-    genre: serial?.genre || '',
-    status: serial?.status || 'active',
-    blogUrl: serial?.blogUrl || '',
-    image: serial?.image || '',
-    imageFile: null,
+    name: '',
+    description: '',
+    genre: '',
+    status: 'active',
+    blogUrl: '',
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFormData(prev => ({ ...prev, imageFile: file }));
-      toast.info(`Selected image: ${file.name}`);
+  // 🔹 Reset form when modal opens or serial changes
+  useEffect(() => {
+    if (serial) {
+      setFormData({
+        name: serial.name || '',
+        description: serial.description || '',
+        genre: serial.genre || '',
+        status: serial.status || 'active',
+        blogUrl: serial.blogUrl || '',
+      });
+    } else {
+      setFormData({
+        name: '',
+        description: '',
+        genre: '',
+        status: 'active',
+        blogUrl: '',
+      });
     }
-  };
+  }, [serial, isOpen]);
 
   const handleSubmit = async () => {
     if (!formData.name.trim()) {
@@ -83,23 +94,19 @@ const SerialFormModal = ({ isOpen, onClose, serial, onSave, mode = 'add' }) => {
 
     try {
       const token = localStorage.getItem('jwtToken');
-      const config = { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } };
-
-      const payload = new FormData();
-      payload.append('name', formData.name);
-      payload.append('description', formData.description);
-      payload.append('genre', formData.genre);
-      payload.append('status', formData.status);
-      payload.append('blogUrl', formData.blogUrl);
-      if (formData.imageFile) payload.append('image', formData.imageFile);
+      const config = { headers: { Authorization: `Bearer ${token}` } };
 
       let response;
       if (mode === 'add') {
-        response = await axios.post('https://illegal-backend.vercel.app/api/serials', payload, config);
+        response = await axios.post(
+          'https://illegal-backend.vercel.app/api/serials',
+          formData,
+          config
+        );
       } else {
         response = await axios.put(
           `https://illegal-backend.vercel.app/api/serials/${serial._id}`,
-          payload,
+          formData,
           config
         );
       }
@@ -120,8 +127,12 @@ const SerialFormModal = ({ isOpen, onClose, serial, onSave, mode = 'add' }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-gray-900 rounded-lg p-6 w-full max-w-md border border-gray-700">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold text-white">{mode === 'add' ? 'Add New Serial' : 'Edit Serial'}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-white"><X className="w-5 h-5"/></button>
+          <h3 className="text-xl font-bold text-white">
+            {mode === 'add' ? 'Add New Serial' : 'Edit Serial'}
+          </h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-white">
+            <X className="w-5 h-5"/>
+          </button>
         </div>
 
         <div className="space-y-4">
@@ -129,25 +140,25 @@ const SerialFormModal = ({ isOpen, onClose, serial, onSave, mode = 'add' }) => {
             type="text"
             placeholder="Serial Name"
             value={formData.name}
-            onChange={e => setFormData({...formData, name: e.target.value})}
+            onChange={e => setFormData({ ...formData, name: e.target.value })}
             className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
           />
           <textarea
             placeholder="Description"
             value={formData.description}
-            onChange={e => setFormData({...formData, description: e.target.value})}
+            onChange={e => setFormData({ ...formData, description: e.target.value })}
             className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white h-20 focus:outline-none focus:ring-2 focus:ring-cyan-400"
           />
           <input
             type="text"
             placeholder="Genre"
             value={formData.genre}
-            onChange={e => setFormData({...formData, genre: e.target.value})}
+            onChange={e => setFormData({ ...formData, genre: e.target.value })}
             className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
           />
           <select
             value={formData.status}
-            onChange={e => setFormData({...formData, status: e.target.value})}
+            onChange={e => setFormData({ ...formData, status: e.target.value })}
             className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
           >
             <option value="active">Active</option>
@@ -158,17 +169,9 @@ const SerialFormModal = ({ isOpen, onClose, serial, onSave, mode = 'add' }) => {
             type="url"
             placeholder="Blog URL"
             value={formData.blogUrl}
-            onChange={e => setFormData({...formData, blogUrl: e.target.value})}
+            onChange={e => setFormData({ ...formData, blogUrl: e.target.value })}
             className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
           />
-          <div className="flex space-x-2 items-center">
-            <input type="file" accept="image/*" onChange={handleImageChange} className="flex-1 bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white"/>
-            {formData.imageFile ? (
-              <img src={URL.createObjectURL(formData.imageFile)} alt="Preview" className="w-16 h-16 object-cover rounded"/>
-            ) : formData.image ? (
-              <img src={formData.image} alt="Preview" className="w-16 h-16 object-cover rounded"/>
-            ) : null}
-          </div>
         </div>
 
         <div className="flex space-x-3 mt-6">
@@ -183,53 +186,86 @@ const SerialFormModal = ({ isOpen, onClose, serial, onSave, mode = 'add' }) => {
           <button
             onClick={onClose}
             className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded font-medium transition-colors"
-          >Cancel</button>
+          >
+            Cancel
+          </button>
         </div>
       </div>
     </div>
   );
 };
 
+
 // ----------------- Episode Form Modal -----------------
-const EpisodeFormModal = ({ isOpen, onClose, episode, serials, onSave, mode='add' }) => {
+const EpisodeFormModal = ({ isOpen, onClose, episode, serials, onSave, mode = 'add' }) => {
   const [formData, setFormData] = useState({
-    title: episode?.title || '',
-    episodeNo: episode?.episodeNo || '',
-    description: episode?.description || '',
-    redirectUrl: episode?.redirectUrl || '',
-    serialId: episode?.serialId || serials[0]?._id || '',
-    duration: episode?.duration || '',
-    date: episode?.date || new Date().toLocaleDateString('en-GB'),
-    image: episode?.image || '',
-    imageFile: null
+    title: '',
+    episodeNo: '',
+    description: '',
+    redirectUrl: '',
+    serialId: serials[0]?._id || '',
+    duration: '',
+    date: new Date().toLocaleDateString('en-GB'),
+    image: '',
+    imageFile: null,
   });
   const [isLoading, setIsLoading] = useState(false);
 
+  // 🔹 Reset form whenever episode/serials/isOpen changes
+  useEffect(() => {
+    if (episode) {
+      setFormData({
+        title: episode.title || '',
+        episodeNo: episode.episodeNo || '',
+        description: episode.description || '',
+        redirectUrl: episode.redirectUrl || '',
+        serialId: episode.serialId || serials[0]?._id || '',
+        duration: episode.duration || '',
+        date: episode.date || new Date().toLocaleDateString('en-GB'),
+        image: episode.image || '',
+        imageFile: null,
+      });
+    } else {
+      setFormData({
+        title: '',
+        episodeNo: '',
+        description: '',
+        redirectUrl: '',
+        serialId: serials[0]?._id || '',
+        duration: '',
+        date: new Date().toLocaleDateString('en-GB'),
+        image: '',
+        imageFile: null,
+      });
+    }
+  }, [episode, serials, isOpen]);
+
   const handleImageChange = e => {
     const file = e.target.files[0];
-    if(file) setFormData(prev=>({...prev, imageFile:file}));
+    if (file) setFormData(prev => ({ ...prev, imageFile: file }));
   };
 
   const handleSubmit = async () => {
-    if(!formData.title.trim() || !formData.serialId){
+    if (!formData.title.trim() || !formData.serialId) {
       toast.error('Episode title and serial are required');
       return;
     }
 
     setIsLoading(true);
-    try{
+    try {
       const token = localStorage.getItem('jwtToken');
-      const config = { headers: { Authorization:`Bearer ${token}`, 'Content-Type':'multipart/form-data' } };
+      const config = { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } };
+
       const payload = new FormData();
       payload.append('title', formData.title);
       payload.append('episodeNo', formData.episodeNo);
       payload.append('description', formData.description);
       payload.append('redirectUrl', formData.redirectUrl);
       payload.append('serialId', formData.serialId);
-      if(formData.imageFile) payload.append('image', formData.imageFile);
+      if (formData.imageFile) payload.append('image', formData.imageFile);
 
       let response;
-      if(mode==='add'){
+      if (mode === 'add') {
         response = await axios.post(
           `https://illegal-backend.vercel.app/api/serials/${formData.serialId}/episodes`,
           payload,
@@ -242,67 +278,113 @@ const EpisodeFormModal = ({ isOpen, onClose, episode, serials, onSave, mode='add
           config
         );
       }
+
       onSave({ ...response.data.data, duration: formData.duration, date: formData.date });
-      toast.success(mode==='add'?'Episode added successfully':'Episode updated successfully');
+      toast.success(mode === 'add' ? 'Episode added successfully' : 'Episode updated successfully');
       onClose();
-    } catch(err){
+    } catch (err) {
       toast.error(err.response?.data?.msg || 'Failed to save episode');
     } finally {
       setIsLoading(false);
     }
   };
 
-  if(!isOpen) return null;
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-gray-900 rounded-lg p-6 w-full max-w-lg border border-gray-700 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold text-white">{mode==='add'?'Add New Episode':'Edit Episode'}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-white"><X className="w-5 h-5"/></button>
+          <h3 className="text-xl font-bold text-white">
+            {mode === 'add' ? 'Add New Episode' : 'Edit Episode'}
+          </h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-white">
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         <div className="space-y-4">
-          <select value={formData.serialId} onChange={e=>setFormData({...formData, serialId:e.target.value})}
-            className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400">
-            {serials.map(s=> <option key={s._id} value={s._id}>{s.name}</option>)}
+          <select
+            value={formData.serialId}
+            onChange={e => setFormData({ ...formData, serialId: e.target.value })}
+            className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          >
+            {serials.map(s => (
+              <option key={s._id} value={s._id}>{s.name}</option>
+            ))}
           </select>
 
-          <input type="text" placeholder="Episode Title" value={formData.title}
-            onChange={e=>setFormData({...formData, title:e.target.value})}
-            className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"/>
-          <input type="number" placeholder="Episode No" value={formData.episodeNo}
-            onChange={e=>setFormData({...formData, episodeNo:e.target.value})}
-            className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"/>
-          <input type="text" placeholder="Duration" value={formData.duration}
-            onChange={e=>setFormData({...formData, duration:e.target.value})}
-            className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"/>
-          <input type="text" placeholder="Air Date" value={formData.date}
-            onChange={e=>setFormData({...formData, date:e.target.value})}
-            className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"/>
-          <textarea placeholder="Description" value={formData.description}
-            onChange={e=>setFormData({...formData, description:e.target.value})}
-            className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white h-20 focus:outline-none focus:ring-2 focus:ring-cyan-400"/>
-          <input type="url" placeholder="Redirect URL" value={formData.redirectUrl}
-            onChange={e=>setFormData({...formData, redirectUrl:e.target.value})}
-            className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"/>
+          <input
+            type="text"
+            placeholder="Episode Title"
+            value={formData.title}
+            onChange={e => setFormData({ ...formData, title: e.target.value })}
+            className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          />
+          <input
+            type="number"
+            placeholder="Episode No"
+            value={formData.episodeNo}
+            onChange={e => setFormData({ ...formData, episodeNo: e.target.value })}
+            className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          />
+          <input
+            type="text"
+            placeholder="Duration"
+            value={formData.duration}
+            onChange={e => setFormData({ ...formData, duration: e.target.value })}
+            className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          />
+          <input
+            type="text"
+            placeholder="Air Date"
+            value={formData.date}
+            onChange={e => setFormData({ ...formData, date: e.target.value })}
+            className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          />
+          <textarea
+            placeholder="Description"
+            value={formData.description}
+            onChange={e => setFormData({ ...formData, description: e.target.value })}
+            className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white h-20 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          />
+          <input
+            type="url"
+            placeholder="Redirect URL"
+            value={formData.redirectUrl}
+            onChange={e => setFormData({ ...formData, redirectUrl: e.target.value })}
+            className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          />
           <div className="flex space-x-2 items-center">
-            <input type="file" accept="image/*" onChange={handleImageChange} className="flex-1 bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white"/>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="flex-1 bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white"
+            />
             {formData.imageFile ? (
-              <img src={URL.createObjectURL(formData.imageFile)} alt="Preview" className="w-16 h-16 object-cover rounded"/>
+              <img src={URL.createObjectURL(formData.imageFile)} alt="Preview" className="w-16 h-16 object-cover rounded" />
             ) : formData.image ? (
-              <img src={formData.image} alt="Preview" className="w-16 h-16 object-cover rounded"/>
+              <img src={formData.image} alt="Preview" className="w-16 h-16 object-cover rounded" />
             ) : null}
           </div>
         </div>
 
         <div className="flex space-x-3 mt-6">
-          <button onClick={handleSubmit} disabled={isLoading || !formData.title.trim() || !formData.serialId}
-            className="flex-1 bg-cyan-600 hover:bg-cyan-700 disabled:bg-gray-600 text-white py-2 px-4 rounded font-medium transition-colors">
-            <Save className="w-4 h-4 inline mr-2"/>
-            {isLoading ? 'Saving...' : mode==='add'?'Add Episode':'Update Episode'}
+          <button
+            onClick={handleSubmit}
+            disabled={isLoading || !formData.title.trim() || !formData.serialId}
+            className="flex-1 bg-cyan-600 hover:bg-cyan-700 disabled:bg-gray-600 text-white py-2 px-4 rounded font-medium transition-colors"
+          >
+            <Save className="w-4 h-4 inline mr-2" />
+            {isLoading ? 'Saving...' : mode === 'add' ? 'Add Episode' : 'Update Episode'}
           </button>
-          <button onClick={onClose} className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded font-medium transition-colors">Cancel</button>
+          <button
+            onClick={onClose}
+            className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded font-medium transition-colors"
+          >
+            Cancel
+          </button>
         </div>
       </div>
     </div>

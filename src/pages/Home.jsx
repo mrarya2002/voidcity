@@ -4,12 +4,12 @@ import { Play, ArrowRight } from "lucide-react";
 
 // Top Header Component
 const TopHeader = () => (
-  <header className="bg-black text-white px-6 py-4 flex justify-between items-center">
+  <header className="bg-zinc-900 text-white px-6 py-4 flex justify-between items-center">
     <h1 className="text-3xl font-bold">
       <span className="text-cyan-400">VOID</span>{" "}
       <span className="text-blue-500">CITY</span>
     </h1>
-    <span className="text-gray-300 text-sm">A city that you have dreamed</span>
+    <span className="text-gray-300 text-sm text-right">A city that <br /> you have dreamed</span>
   </header>
 );
 
@@ -31,53 +31,77 @@ const NavigationHeader = () => (
 
 // Section Header
 const SectionHeader = () => (
-  <div className="px-6 py-4 bg-black">
+  <div className="px-6 py-4 bg-zinc-900">
     <h2 className="text-white text-lg font-medium">TV Shows</h2>
   </div>
 );
 
 // Episode Card
-const EpisodeCard = ({ episode }) => (
-  <div className="bg-gray-900 rounded-lg overflow-hidden hover:bg-gray-800 transition-colors cursor-pointer group flex-shrink-0 w-72">
-    <div className="relative">
-      <img
-        src={episode.image || episode.thumbnail} // use episode image from backend
-        alt={episode.title}
-        className="w-full h-48 object-cover"
-      />
-      <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-        <Play className="w-12 h-12 text-white" fill="white" />
+const EpisodeCard = ({ episode, serialName }) => {
+  // Define blog base URL per serial
+  const blogBaseUrls = {
+    "Anupama": import.meta.env.VITE_ANUPAMA_BLOG,
+    "Bhagya Lakshmi": import.meta.env.VITE_BHAGYA_LAKSHMI_BLOG,
+    "Tum Se Tum Tak": import.meta.env.VITE_TUM_SE_TUM_TAK_BLOG,
+    "Saas Bhi Kabhi Bahu Thi": import.meta.env.VITE_SAAS_BHI_KABHI_BAHU_THI_BLOG
+
+  };
+
+  const blogUrl = blogBaseUrls[serialName]
+    ? `${blogBaseUrls[serialName]}/${episode.episodeNo}`
+    : "#"; // fallback
+
+  return (
+   <a href={blogUrl} target="_blank" rel="noopener noreferrer">
+      <div className="bg-gray-900 rounded-lg overflow-hidden cursor-pointer group flex-shrink-0 w-72">
+        <div className="relative">
+          <img
+            src={episode.image || episode.thumbnail}
+            alt={episode.title}
+            className="w-full h-48 object-cover transition-all duration-300 group-hover:blur-sm"
+          />
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+            <Play className="w-12 h-12 text-white" fill="white" />
+          </div>
+        </div>
+        <div className="p-4">
+          <h3 className="text-white font-semibold text-lg mb-1">{episode.title}</h3>
+          <div className="flex items-center text-gray-400 text-sm space-x-2">
+            {episode.episodeNo && <span>{episode.episodeNo}</span>}
+            {/* {episode.duration && (
+              <>
+                <span>•</span>
+                <span>{episode.duration}</span>
+              </>
+            )} */}
+          
+              <>
+                <span>•</span>
+                <span>25m</span>
+              </>
+       
+            {episode.createdAt && (
+              <>
+                <span>•</span>
+                <span>{new Date(episode.createdAt).toLocaleDateString()}</span>
+              </>
+            )}
+          </div>
+        </div>
       </div>
-    </div>
-    <div className="p-4">
-      <h3 className="text-white font-semibold text-lg mb-1">{episode.title}</h3>
-      <div className="flex items-center text-gray-400 text-sm space-x-2">
-        {episode.code && <span>{episode.code}</span>}
-        {episode.duration && (
-          <>
-            <span>•</span>
-            <span>{episode.duration}</span>
-          </>
-        )}
-        {episode.date && (
-          <>
-            <span>•</span>
-            <span>{new Date(episode.date).toLocaleDateString()}</span>
-          </>
-        )}
-      </div>
-    </div>
-  </div>
-);
+    </a>
+  );
+};
+
 
 // Serial Section
 const SerialSection = ({ serial }) => (
   <section className="mb-8">
-    <div className="px-6 py-8 bg-black">
-      <h1 className="text-6xl font-bold text-white mb-2">{serial.title}</h1>
+    <div className="px-6 py-4 bg-black">
+      <h1 className="text-4xl font-bold text-white">{serial.name}</h1>
     </div>
     <div className="px-6 py-6 bg-black">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-5">
         <h2 className="text-2xl font-bold text-white">Episodes</h2>
         <button className="flex items-center text-cyan-400 hover:text-cyan-300 transition-colors">
           <span className="mr-2">Scroll for more</span>
@@ -86,9 +110,11 @@ const SerialSection = ({ serial }) => (
       </div>
       <div className="overflow-x-auto scrollbar-hide">
         <div className="flex space-x-6 pb-4" style={{ width: "max-content" }}>
-          {serial.episodes.map((ep) => (
-            <EpisodeCard key={ep._id || ep.id} episode={ep} />
-          ))}
+          {serial.episodes
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) // newest first
+            .map((ep) => (
+              <EpisodeCard key={ep._id || ep.id} episode={ep} serialName={serial.name} />
+            ))}
         </div>
       </div>
     </div>
