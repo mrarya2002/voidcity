@@ -38,13 +38,11 @@ const SectionHeader = () => (
 
 // Episode Card
 const EpisodeCard = ({ episode, serialName }) => {
-  // Define blog base URL per serial
   const blogBaseUrls = {
     "Anupama": import.meta.env.VITE_ANUPAMA_BLOG,
     "Yeh Rishta Kya Kehlata Hai": import.meta.env.VITE_BHAGYA_LAKSHMI_BLOG,
     // "Tum Se Tum Tak": import.meta.env.VITE_TUM_SE_TUM_TAK_BLOG,
     // "Saas Bhi Kabhi Bahu Thi": import.meta.env.VITE_SAAS_BHI_KABHI_BAHU_THI_BLOG
-
   };
 
   const blogUrl = blogBaseUrls[serialName]
@@ -52,38 +50,28 @@ const EpisodeCard = ({ episode, serialName }) => {
     : "#"; // fallback
 
   return (
-   <a href={blogUrl} target="_blank" rel="noopener noreferrer">
-      <div className="bg-gray-900 rounded-lg overflow-hidden cursor-pointer group flex-shrink-0 w-72">
+    <a href={blogUrl} target="_blank" rel="noopener noreferrer">
+      {/* 🔹 Responsive width: smaller on mobile, bigger on md+ */}
+      <div className="bg-gray-900 rounded-lg overflow-hidden cursor-pointer group flex-shrink-0 w-44 sm:w-52 md:w-64 lg:w-72">
         <div className="relative">
           <img
             src={episode.image || episode.thumbnail}
             alt={episode.title}
-            className="w-full h-48 object-cover transition-all duration-300 group-hover:blur-sm"
+            className="w-full h-32 sm:h-40 md:h-44 lg:h-48 object-cover"
           />
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-            <Play className="w-12 h-12 text-white" fill="white" />
-          </div>
         </div>
-        <div className="p-4">
-          <h3 className="text-white font-semibold text-lg mb-1">{episode.title}</h3>
-          <div className="flex items-center text-gray-400 text-sm space-x-2">
+        <div className="p-3 sm:p-4">
+          <h3 className="text-white font-semibold text-sm sm:text-base mb-1">
+            {episode.title}
+          </h3>
+          <div className="flex flex-wrap items-center text-gray-400 text-xs sm:text-sm space-x-2">
             {episode.episodeNo && <span>{episode.episodeNo}</span>}
-            {/* {episode.duration && (
-              <>
-                <span>•</span>
-                <span>{episode.duration}</span>
-              </>
-            )} */}
-          
-              <>
-                <span>•</span>
-                <span>25m</span>
-              </>
-       
+            <span>•</span>
+            <span>25m</span>
             {episode.createdAt && (
               <>
                 <span>•</span>
-                <span>{new Date(episode.createdAt).toLocaleDateString()}</span>
+                <span>{new Date(episode.createdAt).toLocaleDateString("en-GB")}</span>
               </>
             )}
           </div>
@@ -92,6 +80,7 @@ const EpisodeCard = ({ episode, serialName }) => {
     </a>
   );
 };
+
 
 
 // Serial Section
